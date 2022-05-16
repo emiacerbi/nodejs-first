@@ -2,18 +2,25 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 let notes = [
   {
     "id": 1,
     "content": "Ir al gimnasio",
+    "important": false,
   },
   {
     "id": 2,
     "content": "Comer mucho",
+    "important": true,
+
   },
   {
     "id": 3,
     "content": "Ser groso en javascript",
+    "important": true,
+
   }
 ]
 
@@ -27,7 +34,7 @@ app.get('/api/notes', (request, response) => {
 
 app.get('/api/notes/:id', (request, response) => {
   const id = Number(request.params.id)
-  console.log(id)
+  console.log('Note number:', id)
   const note = notes.find(note => note.id === id)
 
   if (note) {
@@ -41,6 +48,31 @@ app.delete('/api/notes/:id', (request, response) => {
   const id = Number(request.params.id)
   notes = notes.filter(note => note.id !== id)
   response.status(204).end()
+})
+
+app.post('/api/notes', (request, response) => {
+  const note = request.body
+
+  if (!note || !note.content) {
+    return response.status(400).json({
+      error: 'not.content is missing'
+    })
+  }
+
+  const ids = notes.map(note => note.id)
+  const maxId = Math.max(...ids)
+  console.log(maxId)
+  const newNote = {
+    id: maxId + 1,
+    content: note.content,
+    important: note.important ? note.important : false
+  }
+
+  console.log(response)
+
+  notes = notes.concat(newNote)
+
+  response.json(newNote)
 })
 
 const PORT = 3001
