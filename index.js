@@ -4,23 +4,28 @@ const app = express()
 
 app.use(express.json())
 
+app.use((request, response, next) => {
+  console.log((request.method))
+  console.log((request.path))
+  console.log((request.body))
+  console.log('------')
+})
+
 let notes = [
   {
-    "id": 1,
-    "content": "Ir al gimnasio",
-    "important": false,
+    id: 1,
+    content: 'Ir al gimnasio',
+    important: false
   },
   {
-    "id": 2,
-    "content": "Comer mucho",
-    "important": true,
-
+    id: 2,
+    content: 'Comer mucho',
+    important: true
   },
   {
-    "id": 3,
-    "content": "Ser groso en javascript",
-    "important": true,
-
+    id: 3,
+    content: 'Ser groso en javascript',
+    important: true
   }
 ]
 
@@ -68,11 +73,9 @@ app.post('/api/notes', (request, response) => {
     important: note.important ? note.important : false
   }
 
-  console.log(response)
-
   notes = notes.concat(newNote)
 
-  response.json(newNote)
+  response.status(201).json(newNote)
 })
 
 const PORT = 3001
