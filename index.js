@@ -1,15 +1,10 @@
-// const { application } = require('express')
+require('dotenv').config()
+require('./mongo')
+
 const express = require('express')
 const app = express()
 
 app.use(express.json())
-
-app.use((request, response, next) => {
-  console.log((request.method))
-  console.log((request.path))
-  console.log((request.body))
-  console.log('------')
-})
 
 let notes = [
   {
