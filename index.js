@@ -3,77 +3,69 @@ require('./mongo')
 
 const express = require('express')
 const app = express()
+const Note = require('./models/Note')
 
 app.use(express.json())
-
-let notes = [
-  {
-    id: 1,
-    content: 'Ir al gimnasio',
-    important: false
-  },
-  {
-    id: 2,
-    content: 'Comer mucho',
-    important: true
-  },
-  {
-    id: 3,
-    content: 'Ser groso en javascript',
-    important: true
-  }
-]
 
 app.get('/', (request, response) => {
   response.send('<h1>Hello worlds</h1>')
 })
 
-app.get('/api/notes', (request, response) => {
-  response.json(notes)
+app.get('/api/notes', async (request, response) => {
+  Note.find({})
+    .then(notes => {
+      response.json(notes)
+    })
 })
 
 app.get('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  console.log('Note number:', id)
-  const note = notes.find(note => note.id === id)
-
-  if (note) {
-    response.json(note)
-  } else {
-    response.status(404).end()
-  }
+  const id = request.params.id
+  Note.findById(id)
+    .then(note => {
+      if (note) {
+        response.json(note)
+      } else {
+        response.status(404).end()
+      }
+    })
 })
 
-app.delete('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  notes = notes.filter(note => note.id !== id)
-  response.status(204).end()
+app.put('/api/notes/:id', (request, response) => {
+  const id = request.params.id
+  const note = request.body
+
+  const updatedNote = {
+    content: note.content,
+    important: note.important
+  }
+
+  Note.findByIdAndUpdate(id, updatedNote, { new: true }) // property new returns the updated note, not the original one
+    .then(result => {
+      response.json(result)
+    })
+})
+
+app.delete('/api/notes/:id', async (request, response) => {
+  const id = request.params.id
+
+  Note.findByIdAndDelete(id)
+    .then(res => console.log(res))
 })
 
 app.post('/api/notes', (request, response) => {
   const note = request.body
 
-  if (!note || !note.content) {
-    return response.status(400).json({
-      error: 'not.content is missing'
-    })
-  }
-
-  const ids = notes.map(note => note.id)
-  const maxId = Math.max(...ids)
-  console.log(maxId)
-  const newNote = {
-    id: maxId + 1,
+  const newNote = new Note({
     content: note.content,
     important: note.important ? note.important : false
-  }
+  })
 
-  notes = notes.concat(newNote)
-
-  response.status(201).json(newNote)
+  newNote.save()
+    .then(savedNote => {
+      response.json(savedNote)
+    })
 })
 
-const PORT = 3001
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+app.listen(process.env.PORT, () => {
+  console.log(`Server running on port ${process.env.PORT}`)
 })
